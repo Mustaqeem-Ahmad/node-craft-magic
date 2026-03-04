@@ -1,7 +1,6 @@
 import { BaseNodeWithBody } from './BaseNode';
 import { Filter } from 'lucide-react';
 
-/** FilterNode - Filters data based on a condition */
 const FilterNode = () => (
   <BaseNodeWithBody
     title="Filter"

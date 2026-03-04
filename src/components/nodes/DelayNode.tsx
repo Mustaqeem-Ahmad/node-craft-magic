@@ -1,7 +1,6 @@
 import { BaseNodeWithBody } from './BaseNode';
 import { Clock } from 'lucide-react';
 
-/** DelayNode - Adds a time delay in the pipeline */
 const DelayNode = () => (
   <BaseNodeWithBody
     title="Delay"

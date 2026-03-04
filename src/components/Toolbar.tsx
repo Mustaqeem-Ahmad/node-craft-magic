@@ -4,27 +4,23 @@ import {
   Calculator, Filter, Clock, Shuffle
 } from 'lucide-react';
 
-/** Node type definitions for the toolbar */
-const nodeTypes = [
-  { type: 'input', label: 'Input', icon: Download, color: 'bg-node-input' },
-  { type: 'output', label: 'Output', icon: Upload, color: 'bg-node-output' },
-  { type: 'llm', label: 'LLM', icon: Brain, color: 'bg-node-llm' },
-  { type: 'text', label: 'Text', icon: Type, color: 'bg-node-text' },
-  { type: 'api', label: 'API', icon: Globe, color: 'bg-node-api' },
-  { type: 'math', label: 'Math', icon: Calculator, color: 'bg-node-math' },
-  { type: 'filter', label: 'Filter', icon: Filter, color: 'bg-node-filter' },
-  { type: 'delay', label: 'Delay', icon: Clock, color: 'bg-node-delay' },
-  { type: 'transform', label: 'Transform', icon: Shuffle, color: 'bg-node-transform' },
+// All the node types available in the toolbar
+const nodes = [
+  { type: 'input',     label: 'Input',     icon: Download,   color: 'bg-node-input' },
+  { type: 'output',    label: 'Output',    icon: Upload,     color: 'bg-node-output' },
+  { type: 'llm',       label: 'LLM',       icon: Brain,      color: 'bg-node-llm' },
+  { type: 'text',      label: 'Text',      icon: Type,       color: 'bg-node-text' },
+  { type: 'api',       label: 'API',       icon: Globe,      color: 'bg-node-api' },
+  { type: 'math',      label: 'Math',      icon: Calculator, color: 'bg-node-math' },
+  { type: 'filter',    label: 'Filter',    icon: Filter,     color: 'bg-node-filter' },
+  { type: 'delay',     label: 'Delay',     icon: Clock,      color: 'bg-node-delay' },
+  { type: 'transform', label: 'Transform', icon: Shuffle,    color: 'bg-node-transform' },
 ];
 
-/**
- * Toolbar - Displays draggable node types that can be dropped onto the canvas.
- * Uses HTML5 drag-and-drop to transfer node type data.
- */
 const Toolbar = () => {
-  const onDragStart = (event: DragEvent, nodeType: string) => {
-    event.dataTransfer.setData('application/reactflow', nodeType);
-    event.dataTransfer.effectAllowed = 'move';
+  const onDragStart = (e: DragEvent, nodeType: string) => {
+    e.dataTransfer.setData('application/reactflow', nodeType);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
   return (
@@ -32,7 +28,7 @@ const Toolbar = () => {
       <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mr-2 font-mono">
         Nodes
       </span>
-      {nodeTypes.map(({ type, label, icon: Icon, color }) => (
+      {nodes.map(({ type, label, icon: Icon, color }) => (
         <div
           key={type}
           draggable

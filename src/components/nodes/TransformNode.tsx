@@ -1,7 +1,6 @@
 import { BaseNodeWithBody } from './BaseNode';
 import { Shuffle } from 'lucide-react';
 
-/** TransformNode - Transforms data using a JavaScript expression */
 const TransformNode = () => (
   <BaseNodeWithBody
     title="Transform"
