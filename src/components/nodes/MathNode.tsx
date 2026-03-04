@@ -1,7 +1,6 @@
 import { BaseNodeWithBody } from './BaseNode';
 import { Calculator } from 'lucide-react';
 
-/** MathNode - Performs mathematical operations on inputs */
 const MathNode = () => (
   <BaseNodeWithBody
     title="Math"

@@ -1,7 +1,6 @@
 import { BaseNodeWithBody } from './BaseNode';
 import { Globe } from 'lucide-react';
 
-/** ApiNode - Makes HTTP API calls in the pipeline */
 const ApiNode = () => (
   <BaseNodeWithBody
     title="API Call"

@@ -26,7 +26,7 @@ import TransformNode from './nodes/TransformNode';
 import Toolbar from './Toolbar';
 import SubmitButton from './SubmitButton';
 
-// Register custom node types with React Flow
+// Register all our custom node components
 const nodeTypes = {
   input: InputNode,
   output: OutputNode,
@@ -39,79 +39,55 @@ const nodeTypes = {
   transform: TransformNode,
 };
 
-// Initial demo nodes
-const initialNodes: Node[] = [
-  {
-    id: 'input-1',
-    type: 'input',
-    position: { x: 50, y: 200 },
-    data: { inputType: 'Text' },
-  },
-  {
-    id: 'llm-1',
-    type: 'llm',
-    position: { x: 350, y: 150 },
-    data: {},
-  },
-  {
-    id: 'output-1',
-    type: 'output',
-    position: { x: 650, y: 200 },
-    data: { outputType: 'Text' },
-  },
+// Starting nodes so the canvas isn't empty
+const defaultNodes: Node[] = [
+  { id: 'input-1', type: 'input', position: { x: 50, y: 200 }, data: { inputType: 'Text' } },
+  { id: 'llm-1', type: 'llm', position: { x: 350, y: 150 }, data: {} },
+  { id: 'output-1', type: 'output', position: { x: 650, y: 200 }, data: { outputType: 'Text' } },
 ];
 
-const initialEdges: Edge[] = [
+const defaultEdges: Edge[] = [
   { id: 'e1', source: 'input-1', sourceHandle: 'output', target: 'llm-1', targetHandle: 'prompt', animated: true },
   { id: 'e2', source: 'llm-1', sourceHandle: 'response', target: 'output-1', targetHandle: 'input', animated: true },
 ];
 
-let nodeId = 10; // Counter for generating unique node IDs
+let nextId = 10; // simple counter for new node IDs
 
-/**
- * PipelineCanvas - Main canvas component that renders the React Flow graph.
- * Supports drag-and-drop from toolbar, node connections, and pipeline submission.
- */
 const PipelineCanvas = () => {
-  const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [nodes, setNodes, onNodesChange] = useNodesState(defaultNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(defaultEdges);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
 
-  // Handle new edge connections
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
+    (conn: Connection) => setEdges((eds) => addEdge({ ...conn, animated: true }, eds)),
     [setEdges]
   );
 
-  // Handle drag-over to allow drop
-  const onDragOver = useCallback((event: DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
+  const onDragOver = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
   }, []);
 
-  // Handle dropping a new node from toolbar
+  // Drop a new node from the toolbar onto the canvas
   const onDrop = useCallback(
-    (event: DragEvent) => {
-      event.preventDefault();
+    (e: DragEvent) => {
+      e.preventDefault();
+      const type = e.dataTransfer.getData('application/reactflow');
+      if (!type || !rfInstance || !wrapperRef.current) return;
 
-      const type = event.dataTransfer.getData('application/reactflow');
-      if (!type || !rfInstance || !reactFlowWrapper.current) return;
-
-      const bounds = reactFlowWrapper.current.getBoundingClientRect();
+      const bounds = wrapperRef.current.getBoundingClientRect();
       const position = rfInstance.project({
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top,
+        x: e.clientX - bounds.left,
+        y: e.clientY - bounds.top,
       });
 
-      const newNode: Node = {
-        id: `${type}-${nodeId++}`,
+      setNodes((nds) => [...nds, {
+        id: `${type}-${nextId++}`,
         type,
         position,
         data: {},
-      };
-
-      setNodes((nds) => nds.concat(newNode));
+      }]);
     },
     [rfInstance, setNodes]
   );
@@ -119,7 +95,7 @@ const PipelineCanvas = () => {
   return (
     <div className="flex flex-col h-screen">
       <Toolbar />
-      <div className="flex-1 relative" ref={reactFlowWrapper}>
+      <div className="flex-1 relative" ref={wrapperRef}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -136,12 +112,7 @@ const PipelineCanvas = () => {
         >
           <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
           <Controls />
-          <MiniMap
-            nodeStrokeWidth={3}
-            pannable
-            zoomable
-            style={{ height: 100, width: 150 }}
-          />
+          <MiniMap nodeStrokeWidth={3} pannable zoomable style={{ height: 100, width: 150 }} />
         </ReactFlow>
         <SubmitButton nodes={nodes} edges={edges} />
       </div>

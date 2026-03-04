@@ -2,30 +2,23 @@ import { useState, useCallback, useRef, useEffect, ChangeEvent } from 'react';
 import { Handle, Position } from 'reactflow';
 import { Type } from 'lucide-react';
 
-/**
- * TextNode - Text input with dynamic variable detection.
- * 
- * Detects variables in {{ variableName }} format using regex.
- * Dynamically creates left-side input handles for each unique variable found.
- * Textarea auto-resizes based on content using scrollHeight.
- */
+// Pulls out unique variable names from {{ varName }} patterns
+const extractVars = (text: string): string[] => {
+  const regex = /\{\{\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\}\}/g;
+  const found = new Set<string>();
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    found.add(match[1]);
+  }
+  return Array.from(found);
+};
+
 const TextNode = ({ data }: { data: { text?: string } }) => {
   const [text, setText] = useState(data.text || '');
-  const [variables, setVariables] = useState<string[]>([]);
+  const [vars, setVars] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Regex to detect {{ variableName }} patterns
-  const extractVariables = useCallback((input: string): string[] => {
-    const regex = /\{\{\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\}\}/g;
-    const vars = new Set<string>();
-    let match;
-    while ((match = regex.exec(input)) !== null) {
-      vars.add(match[1]);
-    }
-    return Array.from(vars);
-  }, []);
-
-  // Auto-resize textarea based on content
+  // Auto-resize the textarea to fit content
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -33,18 +26,16 @@ const TextNode = ({ data }: { data: { text?: string } }) => {
     }
   }, [text]);
 
-  // Handle text changes and update variables
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    const newText = e.target.value;
-    setText(newText);
-    setVariables(extractVariables(newText));
+    const val = e.target.value;
+    setText(val);
+    setVars(extractVars(val));
   };
 
-  // Calculate handle positions for dynamic variable handles
-  const getHandleOffset = (index: number, total: number) => {
+  // Evenly space handles along the left edge
+  const handleOffset = (i: number, total: number) => {
     if (total === 1) return '50%';
-    const spacing = 100 / (total + 1);
-    return `${spacing * (index + 1)}%`;
+    return `${(100 / (total + 1)) * (i + 1)}%`;
   };
 
   return (
@@ -53,9 +44,9 @@ const TextNode = ({ data }: { data: { text?: string } }) => {
       <div className="node-header">
         <span className="text-sm opacity-70"><Type size={14} /></span>
         <span>Text</span>
-        {variables.length > 0 && (
+        {vars.length > 0 && (
           <span className="ml-auto text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
-            {variables.length} var{variables.length > 1 ? 's' : ''}
+            {vars.length} var{vars.length > 1 ? 's' : ''}
           </span>
         )}
       </div>
@@ -68,9 +59,9 @@ const TextNode = ({ data }: { data: { text?: string } }) => {
           className="w-full px-2 py-1.5 text-xs rounded-md border border-input bg-background resize-none min-h-[60px] font-mono focus:outline-none focus:ring-1 focus:ring-primary"
           rows={3}
         />
-        {variables.length > 0 && (
+        {vars.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
-            {variables.map((v) => (
+            {vars.map((v) => (
               <span key={v} className="text-[10px] bg-secondary px-1.5 py-0.5 rounded font-mono">
                 {`{{ ${v} }}`}
               </span>
@@ -79,24 +70,18 @@ const TextNode = ({ data }: { data: { text?: string } }) => {
         )}
       </div>
 
-      {/* Dynamic input handles for each detected variable */}
-      {variables.map((variable, i) => (
+      {/* One handle per detected variable */}
+      {vars.map((v, i) => (
         <Handle
-          key={`var-${variable}`}
+          key={`var-${v}`}
           type="target"
           position={Position.Left}
-          id={variable}
-          style={{ top: getHandleOffset(i, variables.length) }}
+          id={v}
+          style={{ top: handleOffset(i, vars.length) }}
         />
       ))}
 
-      {/* Output handle */}
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="output"
-        style={{ top: '50%' }}
-      />
+      <Handle type="source" position={Position.Right} id="output" style={{ top: '50%' }} />
     </div>
   );
 };
